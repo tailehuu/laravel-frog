@@ -4,7 +4,7 @@ This is a repo which provide a sample application is required to support the fol
 * User 1 authentication
 * User 1 uploads a zip file
 * Contents of the zip file are extracted and stored
-* Contents of the file become publicly available to all users (contents limmited to html, js, css, images)
+* Contents of the file become publicly available to all users (contents limited to html, js, css, images)
 
 Requirements
 ------------
@@ -23,12 +23,9 @@ Set up on Mac
     $ chmod -R 777 storage/
     $ chmod -R 777 bootstrap/cache
 
-### Update database account in __.env__ file
+### Update database info in .env file
 ```
 ...
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
 DB_DATABASE=laravel-frog
 DB_USERNAME=root
 DB_PASSWORD=
