@@ -8,7 +8,14 @@
                 <div class="panel-heading">Upload</div>
 
                 <div class="panel-body">
-                    Show upload form.
+                    <form method="POST" action="/upload" enctype="multipart/form-data">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <div class="form-group">
+                            <input type="file" name="inputFile" id="inputFile">
+                            <p class="help-block">Support <strong>zip</strong> file only.</p>
+                        </div>
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
                 </div>
             </div>
         </div>
