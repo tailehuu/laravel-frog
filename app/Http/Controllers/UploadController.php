@@ -54,7 +54,7 @@ class UploadController extends Controller
             if(strtolower($extension) == 'zip') {
                 // file exists ?
                 if(\Storage::exists($fileName)) {
-                    $message = 'Error. File already exists.';
+                    $request->session()->flash('status', 'Error. File already exists.');
                     return redirect('upload');
                 } else {
                     // move to Storage
@@ -76,22 +76,22 @@ class UploadController extends Controller
                         // delete file
                         \Storage::delete($fileName);
 
-                        $message = 'Uploaded.';
+                        $request->session()->flash('status', 'Uploaded.');
                         return redirect('/');
                     } else {
                         // delete file
                         \Storage::delete($fileName);
 
-                        $message = 'Oops. Something went wrong.';
+                        $request->session()->flash('status', 'Oops. Something went wrong.');
                         return redirect('upload');
                     }
                 }
             } else {
-                $message = 'Error. Support zip file only.';
+                $request->session()->flash('status', 'Error. Support zip file only.');
                 return redirect('upload');
             }
         } else {
-            $message = 'Error. Please choose file to upload.';
+            $request->session()->flash('status', 'Error. Please choose file to upload.');
             return redirect('upload');
         }
     }
