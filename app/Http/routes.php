@@ -16,3 +16,4 @@ Route::get('/', 'HomeController@index');
 Route::auth();
 
 Route::get('/upload', 'UploadController@index');
+Route::get('/download', 'DownloadController@index');

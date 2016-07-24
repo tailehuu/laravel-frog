@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use Illuminate\Support\Facades\Crypt;
 
 class HomeController extends Controller
 {
@@ -13,7 +14,19 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
-        return view('home.index');
+    public function index(Request $request) {
+        $path = $request['id'];
+        $path = empty($path) ? Crypt::encrypt('') : $path;
+
+        $frogStorage = new \App\Frog\Storage();
+        $files = $frogStorage->files($path);
+
+        return view('home.index', [
+            'path' => [
+                'id' => $path,
+                'name' => Crypt::decrypt($path)
+            ],
+            'files' => $files,
+        ]);
     }
 }
