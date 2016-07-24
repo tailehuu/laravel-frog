@@ -48,6 +48,8 @@ class UploadController extends Controller
             $extension = $file->getClientOriginalExtension();
             $fileName = $file->getClientOriginalName();
             $baseName = substr($fileName, 0, strrpos($fileName, '.'));
+
+            // TODO: this path may be not work when change to S3
             $destinationPath = storage_path() . '/app';
 
             // validation
