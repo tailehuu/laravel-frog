@@ -9,7 +9,7 @@ class UploadController extends Controller
     /**
      * Create a new controller instance.
      *
-     * - must log in
+     * - should auth
      *
      * @return void
      */

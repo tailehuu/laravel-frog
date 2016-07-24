@@ -22,10 +22,7 @@ class HomeController extends Controller
         $files = $frogStorage->files($path);
 
         return view('home.index', [
-            'path' => [
-                'id' => $path,
-                'name' => Crypt::decrypt($path)
-            ],
+            'path' => Crypt::decrypt($path),
             'files' => $files,
         ]);
     }

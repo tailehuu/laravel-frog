@@ -5,8 +5,7 @@
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <div class="panel panel-default">
-                <div class="panel-heading">{{ $path['name'] }}</div>
-
+                <div class="panel-heading">{{ $path }}</div>
                 <div class="panel-body">
                     <table class="table">
                         <tr>

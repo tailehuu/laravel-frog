@@ -21,7 +21,7 @@ class Storage {
         $path = decrypt($encryptedPath);
         $result = [];
 
-        // get directories
+        // get directories, no recursive
         $dirs = \Storage::directories($path);
         foreach ($dirs as $dir) {
             $name = str_replace_first($path . '/', '', $dir);
@@ -67,13 +67,11 @@ class Storage {
      * @return string
      */
     private function decrypt($encryptedPath) {
-        $decrypted = '';
         try {
             $decrypted = Crypt::decrypt($encryptedPath);
         } catch (DecryptException $e) {
             $decrypted = '';
         }
-
         return $decrypted;
     }
 }
