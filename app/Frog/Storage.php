@@ -10,6 +10,23 @@ use Illuminate\Support\Facades\Crypt;
  */
 
 class Storage {
+    /*
+     * This is a name of the directory which store 'pending' contents
+     */
+    private $bin = 'bin';
+
+    /*
+     * MimeType pattern
+     *
+     * html             text/html
+     * js               text/plain
+     * css              text/plain
+     * .jpg or .jpeg    image/jpeg
+     * .png             image/png
+     * .gif             image/gif
+     * .DS_Store        application/octet-stream
+     */
+    private $pattern = '/text\/(html|plain)|image\/(jpeg|png|gif)|application\/octet-stream/';
 
     /*
      * Get files & directories in a path
@@ -22,9 +39,14 @@ class Storage {
         $result = [];
 
         // get directories, no recursive
-        $dirs = \Storage::directories($path);
-        foreach ($dirs as $dir) {
+        foreach (\Storage::directories($path) as $dir) {
             $name = str_replace_first($path . '/', '', $dir);
+
+            // don't get bin directory
+            if ($name == $this->bin) {
+                continue;
+            }
+
             $result[] = [
                 'id' => encrypt($dir),
                 'name' => $name,
@@ -35,8 +57,7 @@ class Storage {
         }
 
         // get files
-        $files = \Storage::files($path);
-        foreach ($files as $file) {
+        foreach (\Storage::files($path) as $file) {
             $name = str_replace_first($path . '/', '', $file);
             $result[] = [
                 'id' => encrypt($file),
@@ -48,6 +69,24 @@ class Storage {
         }
 
         return $result;
+    }
+
+    /*
+     * is contained invalid files
+     *
+     * @param string $path
+     * @return boolean
+     */
+    public function isContainedInvalidFile($path) {
+        $isInvalid = false;
+        foreach (\Storage::files($path, true) as $file) {
+            if (!preg_match($this->pattern, \Storage::mimeType($file))) {
+                $isInvalid = true;
+                break;
+            }
+        }
+
+        return $isInvalid;
     }
 
     /*

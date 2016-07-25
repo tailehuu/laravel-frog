@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class UploadController extends Controller
 {
@@ -33,11 +34,14 @@ class UploadController extends Controller
      *
      * Validation rules:
      * - zip file only
+     * - zip file contains html, css, js & images only
      *
      * Process
-     * - move file to Storage
-     * - extract it
-     * - then delete zip file
+     * step 1 - move zip file to bin
+     * step 2 - extract contents
+     * step 3 - delete zip file
+     * step 4 - validate contents (html, css, js & images only)
+     * step 5 - move contents to app
      *
      * @return void
      */
@@ -47,53 +51,64 @@ class UploadController extends Controller
             $file = $request->file('inputFile');
             $extension = $file->getClientOriginalExtension();
             $fileName = $file->getClientOriginalName();
-            $baseName = substr($fileName, 0, strrpos($fileName, '.'));
+            $baseName = substr($fileName, 0, strrpos($fileName, '.')) . '_' . time();
+
+            // change file name to avoid duplicate
+            $fileName = $baseName . '.' . $extension;
 
             // TODO: this path may be not work when change to S3
-            $destinationPath = storage_path() . '/app';
+            $binPath = storage_path() . '/app/bin';
 
             // validation
-            if(strtolower($extension) == 'zip') {
-                // file exists ?
-                if(\Storage::exists($fileName)) {
-                    $request->session()->flash('status', 'Error. File already exists.');
-                    return redirect('upload');
-                } else {
-                    // move to Storage
-                    $file->move($destinationPath, $fileName);
+            if (strtolower($extension) == 'zip') {
+                // step 1 - move zip file to bin
+                $file->move($binPath, $fileName);
 
-                    // extract it
-                    $zip = new \ZipArchive();
-                    if ($zip->open($destinationPath . '/' . $fileName) === TRUE) {
-                        $extractToPath = $destinationPath . '/' . $baseName;
+                // step 2 - extract contents
+                $zip = new \ZipArchive();
+                if ($zip->open($binPath . '/' . $fileName) === TRUE) {
+                    $extractToPath = $binPath . '/' . $baseName;
 
-                        // check folder exist
-                        if (is_dir($extractToPath)) {
-                            $extractToPath .= '_' . time();
-                        }
+                    $zip->extractTo($extractToPath);
+                    $zip->close();
 
-                        $zip->extractTo($extractToPath);
-                        $zip->close();
+                    // step 3 - delete zip file
+                    \Storage::delete('bin/' . $fileName);
 
-                        // delete file
-                        \Storage::delete($fileName);
+                    // step 4 - validate contents (html, css, js & images only)
+                    $frogStorage = new \App\Frog\Storage();
+                    if ($frogStorage->isContainedInvalidFile('bin/' . $baseName)) {
+                        // remove contents from bin
+                        File::deleteDirectory($extractToPath);
 
-                        $request->session()->flash('status', 'Uploaded.');
-                        return redirect('/');
-                    } else {
-                        // delete file
-                        \Storage::delete($fileName);
-
-                        $request->session()->flash('status', 'Oops. Something went wrong.');
+                        $request->session()->flash('status', 'The zip file should contain html, css, js & images only.');
                         return redirect('upload');
+                    } else {
+                        // step 5 - move contents to app
+                        $success = File::copyDirectory($extractToPath, storage_path() . '/app/' . $baseName);
+                        File::deleteDirectory($extractToPath);
+
+                        if ($success) {
+                            $request->session()->flash('status', 'Uploaded.');
+                            return redirect('/');
+                        } else {
+                            $request->session()->flash('status', 'Oops. Something went wrong.');
+                            return redirect('upload');
+                        }
                     }
+                } else {
+                    // delete file
+                    \Storage::delete($fileName);
+
+                    $request->session()->flash('status', 'Oops. Something went wrong.');
+                    return redirect('upload');
                 }
             } else {
-                $request->session()->flash('status', 'Error. Support zip file only.');
+                $request->session()->flash('status', 'Support zip file only.');
                 return redirect('upload');
             }
         } else {
-            $request->session()->flash('status', 'Error. Please choose file to upload.');
+            $request->session()->flash('status', 'Please choose file to upload.');
             return redirect('upload');
         }
     }
